@@ -1,8 +1,8 @@
 const router = require("express").Router();
+const verifyToken = require("./verifyToken");
 
-router.post("/userpost",(req,res)=>{
-    const username = req.body.username;
-    console.log(username)
+router.put("/:id", verifyToken, (req,res)=>{
+    
 })
 
 module.exports = router;

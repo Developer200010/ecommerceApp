@@ -2,6 +2,7 @@ const router = require("express").Router();
 const userModel = require("../models/User.js");
 // const bcrypt = require("bcryptjs");
 const cryptoJs = require("crypto-js");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 // register
 
@@ -28,13 +29,22 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const loggedUser = await userModel.findOne({ email: req.body.email });
-    console.log(loggedUser)
     !loggedUser && res.status(401).json("Wrong Crendentials!")
     const hashedPassword = cryptoJs.AES.decrypt(loggedUser.password, process.env.PASS_SEC)
-    const password = hashedPassword.toString(cryptoJs.enc.Utf8);
-    console.log(password)
-    password !== req.body.password && res.status(401).json("Wrong Crendentials!");
-    res.status(200).send(loggedUser);
+    const Opassword = hashedPassword.toString(cryptoJs.enc.Utf8);
+    Opassword !== req.body.password && res.status(401).json("Wrong Crendentials!");
+
+    const accessToken = jwt.sign(
+        {
+            id:loggedUser._id,
+            isAdmin: loggedUser.isAdmin
+        },
+        process.env.JWT_SEC,
+        {expiresIn:"1d"}
+    )
+
+    const {password, ...others} = loggedUser._doc;
+    res.status(200).send({...others, accessToken});
   } catch (error) {}
 });
 
