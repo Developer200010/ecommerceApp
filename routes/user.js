@@ -47,11 +47,36 @@ router.get("/find/:id", verifyTokenIsAdmin, async(req,res)=>{
 
 // getting all users
 router.get("/",verifyTokenIsAdmin, async (req,res)=>{
+    const queryForLatestUser = req.query.new 
     try {
-    const users = await userModel.find();
+    const users = queryForLatestUser? await userModel.find().sort({_id:-1}).limit(4 ):await userModel.find();
     res.status(200).json(users);  
     } catch (error) {
         res.status(500).json(error)
+    }
+});
+
+router.get("/stats", verifyTokenIsAdmin, async (req,res)=>{
+    const date = new Date();
+    const lastYear = new Date(date.setFullYear(date.getFullYear()-1));
+    try {
+        const data = await userModel.aggregate([
+            {$match:{createdAt: { $gte : lastYear}}},
+            {
+                $project: {
+                    month: {$month: "$createdAt"}
+                },
+            },
+            {
+                $group:{
+                    _id: "$month",
+                    total: {$sum:1}
+                }
+            }
+        ]);
+        res.status(200).json(data)
+    } catch (error) {
+        res.status(500).json(error.message)
     }
 })
 
