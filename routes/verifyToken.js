@@ -25,4 +25,14 @@ const verifyTokenAuthorization = (req,res,next) =>{
     })
 }
 
-module.exports = {verifyToken, verifyTokenAuthorization};
+const verifyTokenIsAdmin = (req,res,next) =>{
+    verifyToken(req,res,()=>{
+        if(req.user.isAdmin){
+        next()
+        }else{
+            res.status(403).json("you are bot allowed to do that!")
+        }
+    })
+}
+
+module.exports = {verifyToken, verifyTokenAuthorization, verifyTokenIsAdmin};
